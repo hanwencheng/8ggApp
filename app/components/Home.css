@@ -1,8 +1,26 @@
 .container {
   position: absolute;
-  top: 30%;
-  left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  top: 10%;
+  width: 100%;
   text-align: center;
+}
+
+.button {
+  width: 200px;
+}
+
+.note {
+  font-size: small;
+  color: #43535A;
+  margin: 0 0 5px 0;
+  padding: 0;
+}
+
+.buttonContainer {
+  margin-top: 20px;
 }
 
 .container h2 {

@@ -12,9 +12,12 @@ const extractLatitudes = lines => _.map(lines, v => {
   return latitude / 180 * earthWidth;
 });
 
-const recoordinate = values => {
+const recoordinate = (values, baseValue, scale) => {
   const minValue = _.min(values);
-  return _.map(values, v => v - minValue);
+  return _.map(values, v => {
+    return (v - minValue) * scale + baseValue
+  });
 }
 
-export const longitude2Altitude = _.flow(extractLongitudes, recoordinate);
+export const longitude2Altitude = (lines, baseValue, scale) => recoordinate(extractLongitudes(lines), baseValue, scale)
+export const latitude2Altitude = (lines, baseValue, scale) => recoordinate(extractLatitudes(lines), baseValue, scale)
