@@ -10,6 +10,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import fs from 'fs';
 import os from 'os';
 import TextField from '@material-ui/core/TextField';
+import Checkbox from '@material-ui/core/Checkbox';
 import routes from '../constants/routes';
 import styles from './Home.css';
 import _ from 'lodash'
@@ -23,7 +24,7 @@ const splitData = (lines) => {
   return _.flow(dropHead, splitAll)(lines)
 }
 
-const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, placeHolderValue) => {
+const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, placeHolderValue, shouldReplaceAxisValue) => {
   const updatedLines = _.map(originalLines, (line, i) => {
     if(i === 0){
       return line;
@@ -31,10 +32,14 @@ const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, placeHo
     const newValue = altitudes[i - 1]
     const originalLineValues = line.split(',')
     if(shouldReplaceLatitude){
-      originalLineValues[0] = placeHolderValue;
+      if(shouldReplaceAxisValue) {
+        originalLineValues[0] = placeHolderValue;
+      }
       originalLineValues[2] = newValue;
     } else {
-      originalLineValues[1] = placeHolderValue;
+      if(shouldReplaceAxisValue) {
+        originalLineValues[1] = placeHolderValue;
+      }
       originalLineValues[2] = newValue;
     }
     return originalLineValues.join(',')
@@ -49,6 +54,7 @@ export default function Home(){
   const [fileData, setFileData] = useState('');
   const [outputPath, setOutputPath] = useState(os.homedir());
   const [inputFilePath, setInputFilePath] = useState('')
+  const [shouldReplaceAxisValue, setShouldReplaceAxisValue] = useState(true);
   
   function readFile (){
     dialog.showOpenDialog({
@@ -97,7 +103,7 @@ export default function Home(){
     // Change how to handle the file content
     const placeHolderValue = shouldReplaceLatitude ? resultData[0][0] : resultData[0][1]
     const altitudes = shouldReplaceLatitude ? latitude2Altitude(resultData, baseHeight, scale) : longitude2Altitude(resultData, baseHeight, scale);
-    const updatedFile = generateOutput(altitudes, filteredDataLines, false, placeHolderValue)
+    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, placeHolderValue, shouldReplaceAxisValue)
     fs.writeFile(`${outputPath}/output-${new Date().getTime()}.csv`, updatedFile, (err) => {
       if(err){
         alert(`An error ocurred creating the file ${ err.message}`)
@@ -133,6 +139,20 @@ export default function Home(){
             />
           </RadioGroup>
         </FormControl>
+      </div>
+      
+      <div>
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={shouldReplaceAxisValue}
+              onChange={event => setShouldReplaceAxisValue(event.target.checked)}
+              color="primary"
+            />
+          }
+          label="Replace axis value"
+        />
       </div>
       
       <div>
