@@ -1,6 +1,5 @@
 // @flow
 import React, {useState} from 'react';
-import { Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -9,12 +8,10 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import fs from 'fs';
 import os from 'os';
+import _ from 'lodash';
 import TextField from '@material-ui/core/TextField';
-import Checkbox from '@material-ui/core/Checkbox';
-import routes from '../constants/routes';
 import styles from './Home.css';
-import _ from 'lodash'
-import { latitude2Altitude, longitude2Altitude } from '../../utils/geoCalculator';
+import { latitude2Altitude, longitude2Altitude, generateOtherAxisValues, generateOriginAxisValue} from '../../utils/geoCalculator';
 
 const {dialog} = require('electron').remote;
 
@@ -24,7 +21,7 @@ const splitData = (lines) => {
   return _.flow(dropHead, splitAll)(lines)
 }
 
-const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, placeHolderValue, shouldReplaceAxisValue) => {
+const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAxisValues, originAxisValues) => {
   const updatedLines = _.map(originalLines, (line, i) => {
     if(i === 0){
       return line;
@@ -32,16 +29,13 @@ const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, placeHo
     const newValue = altitudes[i - 1]
     const originalLineValues = line.split(',')
     if(shouldReplaceLatitude){
-      if(shouldReplaceAxisValue) {
-        originalLineValues[0] = placeHolderValue;
-      }
-      originalLineValues[2] = newValue;
+      originalLineValues[0] = otherAxisValues[i - 1];
+      originalLineValues[1] = originAxisValues[i - 1];
     } else {
-      if(shouldReplaceAxisValue) {
-        originalLineValues[1] = placeHolderValue;
-      }
-      originalLineValues[2] = newValue;
+      originalLineValues[1] = otherAxisValues[i - 1];
+      originalLineValues[0] = originAxisValues[i - 1];
     }
+    originalLineValues[2] = newValue;
     return originalLineValues.join(',')
   })
   return updatedLines.join('\n');
@@ -54,7 +48,7 @@ export default function Home(){
   const [fileData, setFileData] = useState('');
   const [outputPath, setOutputPath] = useState(os.homedir());
   const [inputFilePath, setInputFilePath] = useState('')
-  const [shouldReplaceAxisValue, setShouldReplaceAxisValue] = useState(true);
+  const [rotateDegree, setRotateDegree] = useState(0)
   
   function readFile (){
     dialog.showOpenDialog({
@@ -101,9 +95,11 @@ export default function Home(){
     })
     const resultData = splitData(filteredDataLines);
     // Change how to handle the file content
-    const placeHolderValue = shouldReplaceLatitude ? resultData[0][0] : resultData[0][1]
-    const altitudes = shouldReplaceLatitude ? latitude2Altitude(resultData, baseHeight, scale) : longitude2Altitude(resultData, baseHeight, scale);
-    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, placeHolderValue, shouldReplaceAxisValue)
+    const altitudes = shouldReplaceLatitude ? latitude2Altitude(resultData, baseHeight, scale, rotateDegree) : longitude2Altitude(resultData, baseHeight, scale, rotateDegree);
+    const otherAxisValues = generateOtherAxisValues(resultData, scale, rotateDegree, shouldReplaceLatitude);
+    const originAxisValues = generateOriginAxisValue(resultData, scale, shouldReplaceLatitude);
+    
+    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, otherAxisValues, originAxisValues)
     fs.writeFile(`${outputPath}/output-${new Date().getTime()}.csv`, updatedFile, (err) => {
       if(err){
         alert(`An error ocurred creating the file ${ err.message}`)
@@ -128,30 +124,30 @@ export default function Home(){
             <FormControlLabel
               value={true}
               control={<Radio color="primary" />}
-              label="Latitude"
+              label="Longitude"
               labelPlacement="start"
             />
             <FormControlLabel
               value={false}
               control={<Radio color="primary" />}
-              label="Longitude"
+              label="Latitude"
               labelPlacement="start"
             />
           </RadioGroup>
         </FormControl>
       </div>
-      
+  
       <div>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={shouldReplaceAxisValue}
-              onChange={event => setShouldReplaceAxisValue(event.target.checked)}
-              color="primary"
-            />
-          }
-          label="Replace axis value"
+        <TextField
+          id="standard-number"
+          label="Rotate Degree"
+          value={rotateDegree}
+          onChange={event => setRotateDegree(parseFloat(event.target.value))}
+          type="number"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          margin="normal"
         />
       </div>
       
