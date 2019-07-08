@@ -6,6 +6,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 import fs from 'fs';
 import os from 'os';
 import _ from 'lodash';
@@ -21,7 +22,7 @@ const splitData = (lines) => {
   return _.flow(dropHead, splitAll)(lines)
 }
 
-const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAxisValues, originAxisValues) => {
+const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAxisValues, originAxisValues, shouldConsiderOriginalAltitude) => {
   const updatedLines = _.map(originalLines, (line, i) => {
     if(i === 0){
       return line;
@@ -35,7 +36,12 @@ const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAx
       originalLineValues[1] = otherAxisValues[i - 1];
       originalLineValues[0] = originAxisValues[i - 1];
     }
-    originalLineValues[2] = newValue;
+    if(shouldConsiderOriginalAltitude) {
+      originalLineValues[2] = (newValue + parseFloat(originalLineValues[2])).toString()
+    } else {
+      originalLineValues[2] = newValue;
+    }
+    
     return originalLineValues.join(',')
   })
   return updatedLines.join('\n');
@@ -49,6 +55,7 @@ export default function Home(){
   const [outputPath, setOutputPath] = useState(os.homedir());
   const [inputFilePath, setInputFilePath] = useState('')
   const [rotateDegree, setRotateDegree] = useState(0)
+  const [shouldConsiderOriginalAltitude, setShouldConsiderOriginalAltitude] = useState(false);
   
   function readFile (){
     dialog.showOpenDialog({
@@ -99,8 +106,9 @@ export default function Home(){
     const otherAxisValues = generateOtherAxisValues(resultData, scale, rotateDegree, shouldReplaceLatitude);
     const originAxisValues = generateOriginAxisValue(resultData, scale, shouldReplaceLatitude);
     
-    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, otherAxisValues, originAxisValues)
-    fs.writeFile(`${outputPath}/output-${new Date().getTime()}.csv`, updatedFile, (err) => {
+    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, otherAxisValues, originAxisValues, shouldConsiderOriginalAltitude)
+    const outputName = inputFilePath.replace(/^.*[\\\/]/, '').split('.')[0]
+    fs.writeFile(`${outputPath}/${outputName}-${new Date().getTime()}.csv`, updatedFile, (err) => {
       if(err){
         alert(`An error ocurred creating the file ${ err.message}`)
       }
@@ -135,6 +143,18 @@ export default function Home(){
             />
           </RadioGroup>
         </FormControl>
+      </div>
+  
+      <div>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={shouldConsiderOriginalAltitude}
+              onChange={event => setShouldConsiderOriginalAltitude(event.target.checked)}
+              color="primary"
+            />
+          }
+          label="Consider Original Altitude "/>
       </div>
   
       <div>
