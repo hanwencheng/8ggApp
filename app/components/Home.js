@@ -55,7 +55,7 @@ export default function Home(){
   const [outputPath, setOutputPath] = useState(os.homedir());
   const [inputFilePath, setInputFilePath] = useState('')
   const [rotateDegree, setRotateDegree] = useState(0)
-  const [shouldConsiderOriginalAltitude, setShouldConsiderOriginalAltitude] = useState(false);
+  const [shouldConsiderOriginalAltitude, setShouldConsiderOriginalAltitude] = useState(true);
   
   function readFile (){
     dialog.showOpenDialog({
@@ -145,7 +145,7 @@ export default function Home(){
         </FormControl>
       </div>
   
-      <div>
+      {/** <div>
         <FormControlLabel
           control={
             <Checkbox
@@ -155,7 +155,7 @@ export default function Home(){
             />
           }
           label="Consider Original Altitude "/>
-      </div>
+      </div> * */}
   
       <div>
         <TextField
