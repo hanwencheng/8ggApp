@@ -37,7 +37,7 @@ const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAx
       originalLineValues[0] = originAxisValues[i - 1];
     }
     if(shouldConsiderOriginalAltitude) {
-      originalLineValues[2] = (newValue + parseFloat(originalLineValues[2])).toString()
+      originalLineValues[2] = ((newValue + parseFloat(originalLineValues[2])) * scale).toString()
     } else {
       originalLineValues[2] = newValue;
     }
@@ -106,7 +106,7 @@ export default function Home(){
     const otherAxisValues = generateOtherAxisValues(resultData, scale, rotateDegree, shouldReplaceLatitude);
     const originAxisValues = generateOriginAxisValue(resultData, scale, shouldReplaceLatitude);
     
-    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, otherAxisValues, originAxisValues, shouldConsiderOriginalAltitude)
+    const updatedFile = generateOutput(altitudes, filteredDataLines, shouldReplaceLatitude, otherAxisValues, originAxisValues, shouldConsiderOriginalAltitude, scale)
     const outputName = inputFilePath.replace(/^.*[\\\/]/, '').split('.')[0]
     fs.writeFile(`${outputPath}/${outputName}-${new Date().getTime()}.csv`, updatedFile, (err) => {
       if(err){

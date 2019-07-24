@@ -21,7 +21,7 @@ const extractLatitudes = lines => _.map(lines, v => {
 const recoordinate = (values, baseValue, scale, rotateDegree) => {
   const minValue = _.min(values);
   return _.map(values, v => {
-    const floatNumber = (v - minValue) * Math.sin(rotateDegree * (Math.PI / 180)) * scale + baseValue
+    const floatNumber = ((v - minValue) * Math.sin(rotateDegree * (Math.PI / 180))  + baseValue ) * scale
     return toFixedNumber(floatNumber, 12);
   });
 }
