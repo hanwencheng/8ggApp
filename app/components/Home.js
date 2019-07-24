@@ -22,7 +22,7 @@ const splitData = (lines) => {
   return _.flow(dropHead, splitAll)(lines)
 }
 
-const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAxisValues, originAxisValues, shouldConsiderOriginalAltitude) => {
+const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAxisValues, originAxisValues, shouldConsiderOriginalAltitude, scale) => {
   const updatedLines = _.map(originalLines, (line, i) => {
     if(i === 0){
       return line;
@@ -48,7 +48,7 @@ const generateOutput = (altitudes, originalLines, shouldReplaceLatitude, otherAx
 }
 
 export default function Home(){
-  const [shouldReplaceLatitude, setReplaceAxis] = useState(true);
+  const [shouldReplaceLatitude, setReplaceAxis] = useState(false);
   const [baseHeight, setBaseHeight] = useState(0);
   const [scale, setScale] = useState(1);
   const [fileData, setFileData] = useState('');
@@ -130,13 +130,13 @@ export default function Home(){
             onChange={event => setReplaceAxis(event.target.value === 'true')}
           >
             <FormControlLabel
-              value={true}
+              value={false}
               control={<Radio color="primary" />}
               label="Longitude"
               labelPlacement="start"
             />
             <FormControlLabel
-              value={false}
+              value={true}
               control={<Radio color="primary" />}
               label="Latitude"
               labelPlacement="start"

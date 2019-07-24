@@ -9,13 +9,13 @@ const earthWidthPerimeter = 2 * Math.PI * earthWidthRadius
 const toFixedNumber = (number, fixedPosition) => parseFloat(number.toFixed(fixedPosition));
 
 const extractLongitudes = lines => _.map(lines, v => {
+  const latitude  = parseFloat(v[0]);
   const longitude = parseFloat(v[1]);
-  return earthHeightPerimeter * longitude / 360;
+  return earthHeightPerimeter * longitude / 360 * Math.cos(latitude * (Math.PI / 180));
 });
 const extractLatitudes = lines => _.map(lines, v => {
   const latitude  = parseFloat(v[0]);
-  const longitude = parseFloat(v[1]);
-  return earthWidthPerimeter * latitude / 360 * Math.cos(longitude * (Math.PI / 180));
+  return earthWidthPerimeter * latitude / 360;
 });
 
 const recoordinate = (values, baseValue, scale, rotateDegree) => {
